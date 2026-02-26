@@ -291,7 +291,7 @@ def main():
             df_temp = df_daily.melt(id_vars=["Datum"], value_vars=["Max (°C)", "Min (°C)"], var_name="Type", value_name="°C")
             bar_temp = alt.Chart(df_temp).mark_bar().encode(
                 x=alt.X("Datum:N", title="Datum"),
-                y=alt.Y("°C:Q", title="Temperatuur (°C)"),
+                y=alt.Y("°C:Q", title="Temperatuur (°C)", stack=None),
                 color=alt.Color("Type:N", scale=alt.Scale(range=[orange, "#ffa500"]))
             ).properties(height=250)
             st.altair_chart(bar_temp, use_container_width=True)
