@@ -15,6 +15,9 @@ from datetime import datetime
 VENLO_LAT = 51.3700
 VENLO_LON = 6.1681
 
+# Buienradar radar-afbeelding (hele NL/BE)
+RADAR_URL = "https://api.buienradar.nl/image/1.0/RadarMapNL?width=550&height=512"
+
 st.set_page_config(
     page_title="Venlo Weer",
     page_icon="🌤️",
@@ -195,8 +198,8 @@ def main():
 
     st.markdown("---")
 
-    # --- Tabs: Uurlijks, Dagelijks, Kaart ---
-    tab1, tab2, tab3 = st.tabs(["📊 Uurlijks weer", "📅 7-dagen verwachting", "🗺️ Interactieve kaart"])
+    # --- Tabs: Uurlijks, Dagelijks, Kaart, Radar ---
+    tab1, tab2, tab3, tab4 = st.tabs(["📊 Uurlijks weer", "📅 7-dagen verwachting", "🗺️ Interactieve kaart", "🌧️ Radar"])
 
     with tab1:
         st.subheader("Uurlijkse verwachting (48 uur)")
@@ -322,6 +325,15 @@ def main():
             ]
         })
         st.dataframe(df_coords, use_container_width=True, hide_index=True)
+
+    with tab4:
+        st.subheader("🌧️ Neerslagradar (Nederland)")
+        st.caption("Bron: Buienradar (radar overzicht Nederland/België)")
+        st.image(
+            RADAR_URL,
+            caption="Actuele radar (Buienradar)",
+            use_column_width=True,
+        )
 
     st.markdown("---")
     st.caption("Data via [Open-Meteo.com](https://open-meteo.com/) • Laatste update: " + datetime.now().strftime("%d-%m-%Y %H:%M"))
