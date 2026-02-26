@@ -198,10 +198,38 @@ def main():
 
     st.markdown("---")
 
-    # --- Tabs: Uurlijks, Dagelijks, Kaart, Radar ---
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Uurlijks weer", "📅 7-dagen verwachting", "🗺️ Interactieve kaart", "🌧️ Radar"])
+    # --- Tabs: 5 dagen, Uurlijks, Dagelijks, Kaart, Radar ---
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📈 5-daagse voorspelling", "📊 Uurlijks weer", "📅 7-dagen verwachting", "🗺️ Interactieve kaart", "🌧️ Radar"])
 
     with tab1:
+        st.subheader("📈 5-daagse voorspelling")
+        daily_times = daily.get("time", [])[:5]
+        daily_max = daily.get("temperature_2m_max", [])[:5]
+        daily_min = daily.get("temperature_2m_min", [])[:5]
+        daily_precip = daily.get("precipitation_sum", [])[:5]
+        df_5d = pd.DataFrame({
+            "Dag": [datetime.strptime(d, "%Y-%m-%d").strftime("%a %d %b") for d in daily_times],
+            "Max (°C)": daily_max,
+            "Min (°C)": daily_min,
+            "Neerslag (mm)": daily_precip
+        })
+        orange = "#ff8c00"
+        df_5d_melt = df_5d.melt(id_vars=["Dag"], value_vars=["Max (°C)", "Min (°C)"], var_name="Type", value_name="°C")
+        chart_5d = alt.Chart(df_5d_melt).mark_line(point=True).encode(
+            x=alt.X("Dag:N", title="Dag", sort=None),
+            y=alt.Y("°C:Q", title="Temperatuur (°C)"),
+            color=alt.Color("Type:N", scale=alt.Scale(range=[orange, "#ffa500"])),
+            strokeWidth=alt.value(3)
+        ).properties(height=300)
+        st.altair_chart(chart_5d, use_container_width=True)
+        if daily_precip and any(p and p > 0 for p in daily_precip):
+            st.subheader("Neerslag 5 dagen")
+            st.altair_chart(alt.Chart(df_5d).mark_bar(color=orange).encode(
+                x=alt.X("Dag:N", title="Dag", sort=None),
+                y=alt.Y("Neerslag (mm):Q", title="Neerslag (mm)")
+            ).properties(height=200), use_container_width=True)
+
+    with tab2:
         st.subheader("Uurlijkse verwachting (48 uur)")
         times = hourly.get("time", [])[:48]
         temps = hourly.get("temperature_2m", [])[:48]
@@ -237,7 +265,7 @@ def main():
         ).properties(height=180)
         st.altair_chart(alt.vconcat(chart_temp, chart_wind), use_container_width=True)
 
-    with tab2:
+    with tab3:
         st.subheader("7-dagen verwachting")
         daily_times = daily.get("time", [])
         daily_max = daily.get("temperature_2m_max", [])
@@ -276,7 +304,7 @@ def main():
             else:
                 st.info("Windgegevens niet beschikbaar voor dagelijkse data")
 
-    with tab3:
+    with tab4:
         st.subheader("Interactieve kaart - Venlo")
         m = folium.Map(
             location=[VENLO_LAT, VENLO_LON],
@@ -326,7 +354,7 @@ def main():
         })
         st.dataframe(df_coords, use_container_width=True, hide_index=True)
 
-    with tab4:
+    with tab5:
         st.subheader("🌧️ Neerslagradar (Nederland)")
         st.caption("Bron: Buienradar (radar overzicht Nederland/België)")
         st.image(
